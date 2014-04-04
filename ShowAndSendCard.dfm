@@ -1,0 +1,155 @@
+object FormShowAndSend: TFormShowAndSend
+  Left = 0
+  Top = 0
+  Caption = #1054#1090#1087#1088#1072#1074#1082#1072' '#1074#1099#1073#1088#1072#1085#1085#1086#1081' '#1082#1072#1088#1090#1086#1095#1082#1080' '#1072#1074#1072#1088#1080#1080
+  ClientHeight = 490
+  ClientWidth = 773
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  Position = poScreenCenter
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnShow = FormShow
+  DesignSize = (
+    773
+    490)
+  PixelsPerInch = 96
+  TextHeight = 13
+  object WebBrowser: TWebBrowser
+    Left = 8
+    Top = 32
+    Width = 757
+    Height = 405
+    Anchors = [akLeft, akTop, akRight, akBottom]
+    TabOrder = 0
+    ControlData = {
+      4C0000003D4E0000DC2900000000000000000000000000000000000000000000
+      000000004C000000000000000000000001000000E0D057007335CF11AE690800
+      2B2E126209000000000000004C0000000114020000000000C000000000000046
+      8000000000000000000000000000000000000000000000000000000000000000
+      00000000000000000100000000000000000000000000000000000000}
+  end
+  object btnSend0: TButton
+    Left = 9
+    Top = 443
+    Width = 105
+    Height = 31
+    Anchors = [akBottom]
+    Caption = #1054#1090#1087#1088#1072#1074#1080#1090#1100
+    TabOrder = 1
+    Visible = False
+    OnClick = btnSend0Click
+  end
+  object Edit1: TEdit
+    Left = 8
+    Top = 5
+    Width = 748
+    Height = 21
+    TabOrder = 2
+    Text = 'Edit1'
+  end
+  object BitBtn1: TBitBtn
+    Left = 344
+    Top = 447
+    Width = 121
+    Height = 31
+    Anchors = [akBottom]
+    Caption = #1047#1072#1082#1088#1099#1090#1100
+    DoubleBuffered = True
+    Kind = bkCancel
+    NumGlyphs = 2
+    ParentDoubleBuffered = False
+    TabOrder = 3
+  end
+  object btnSend: TBitBtn
+    Left = 224
+    Top = 448
+    Width = 114
+    Height = 29
+    Anchors = [akBottom]
+    Caption = #1054#1090#1087#1088#1072#1074#1080#1090#1100
+    Default = True
+    DoubleBuffered = True
+    Glyph.Data = {
+      DE010000424DDE01000000000000760000002800000024000000120000000100
+      0400000000006801000000000000000000001000000000000000000000000000
+      80000080000000808000800000008000800080800000C0C0C000808080000000
+      FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00333333333333
+      3333333333333333333333330000333333333333333333333333F33333333333
+      00003333344333333333333333388F3333333333000033334224333333333333
+      338338F3333333330000333422224333333333333833338F3333333300003342
+      222224333333333383333338F3333333000034222A22224333333338F338F333
+      8F33333300003222A3A2224333333338F3838F338F33333300003A2A333A2224
+      33333338F83338F338F33333000033A33333A222433333338333338F338F3333
+      0000333333333A222433333333333338F338F33300003333333333A222433333
+      333333338F338F33000033333333333A222433333333333338F338F300003333
+      33333333A222433333333333338F338F00003333333333333A22433333333333
+      3338F38F000033333333333333A223333333333333338F830000333333333333
+      333A333333333333333338330000333333333333333333333333333333333333
+      0000}
+    NumGlyphs = 2
+    ParentDoubleBuffered = False
+    TabOrder = 4
+    OnClick = btnSend0Click
+  end
+  object DBGrid1: TDBGrid
+    Left = 8
+    Top = 239
+    Width = 320
+    Height = 120
+    DataSource = DataSource1
+    TabOrder = 5
+    TitleFont.Charset = DEFAULT_CHARSET
+    TitleFont.Color = clWindowText
+    TitleFont.Height = -11
+    TitleFont.Name = 'Tahoma'
+    TitleFont.Style = []
+    Visible = False
+  end
+  object DBGrid2: TDBGrid
+    Left = 344
+    Top = 239
+    Width = 320
+    Height = 120
+    DataSource = DataSource2
+    TabOrder = 6
+    TitleFont.Charset = DEFAULT_CHARSET
+    TitleFont.Color = clWindowText
+    TitleFont.Height = -11
+    TitleFont.Name = 'Tahoma'
+    TitleFont.Style = []
+    Visible = False
+  end
+  object query: TADOQuery
+    Connection = FormMain.ADOConnection
+    Parameters = <>
+    Left = 512
+    Top = 408
+  end
+  object Query2: TADOQuery
+    Connection = FormMain.ADOConnection
+    Parameters = <>
+    Left = 576
+    Top = 408
+  end
+  object Timer1: TTimer
+    OnTimer = Timer1Timer
+    Left = 104
+    Top = 416
+  end
+  object DataSource1: TDataSource
+    DataSet = query
+    Left = 328
+    Top = 392
+  end
+  object DataSource2: TDataSource
+    DataSet = Query2
+    Left = 424
+    Top = 400
+  end
+end

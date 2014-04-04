@@ -1,0 +1,48 @@
+﻿	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+		<PropertyGroup>
+			<ProjectGuid>{E440DC52-7A65-4244-A7CB-43DF023B8BBB}</ProjectGuid>
+		</PropertyGroup>
+		<ItemGroup>
+			<Projects Include="ChoiseCard.dproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="C:\Documents and Settings\Admin\Мои документы\RAD Studio\Projects\s1.dproj">
+				<Dependencies/>
+			</Projects>
+		</ItemGroup>
+		<ProjectExtensions>
+			<Borland.Personality>Default.Personality.12</Borland.Personality>
+			<Borland.ProjectType/>
+			<BorlandProject>
+				<Default.Personality/>
+			</BorlandProject>
+		</ProjectExtensions>
+		<Target Name="ChoiseCard">
+			<MSBuild Projects="ChoiseCard.dproj"/>
+		</Target>
+		<Target Name="ChoiseCard:Clean">
+			<MSBuild Projects="ChoiseCard.dproj" Targets="Clean"/>
+		</Target>
+		<Target Name="ChoiseCard:Make">
+			<MSBuild Projects="ChoiseCard.dproj" Targets="Make"/>
+		</Target>
+		<Target Name="s1">
+			<MSBuild Projects="C:\Documents and Settings\Admin\Мои документы\RAD Studio\Projects\s1.dproj"/>
+		</Target>
+		<Target Name="s1:Clean">
+			<MSBuild Projects="C:\Documents and Settings\Admin\Мои документы\RAD Studio\Projects\s1.dproj" Targets="Clean"/>
+		</Target>
+		<Target Name="s1:Make">
+			<MSBuild Projects="C:\Documents and Settings\Admin\Мои документы\RAD Studio\Projects\s1.dproj" Targets="Make"/>
+		</Target>
+		<Target Name="Build">
+			<CallTarget Targets="ChoiseCard;s1"/>
+		</Target>
+		<Target Name="Clean">
+			<CallTarget Targets="ChoiseCard:Clean;s1:Clean"/>
+		</Target>
+		<Target Name="Make">
+			<CallTarget Targets="ChoiseCard:Make;s1:Make"/>
+		</Target>
+		<Import Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')" Project="$(BDS)\Bin\CodeGear.Group.Targets"/>
+	</Project>

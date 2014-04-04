@@ -1,0 +1,19 @@
+Provider=Microsoft.ACE.OLEDB.12.0;
+Password="";
+User ID=Admin;
+Data Source=D:\Документы\RAD Studio\Projects\CARDS\cards.accdb;
+Mode=ReadWrite;
+Extended Properties="";
+Jet OLEDB:System database="";
+Jet OLEDB:Registry Path="";
+Jet OLEDB:Database Password="";
+Jet OLEDB:Engine Type=6;
+Jet OLEDB:Database Locking Mode=1;
+Jet OLEDB:Global Partial Bulk Ops=2;
+Jet OLEDB:Global Bulk Transactions=1;
+Jet OLEDB:New Database Password="";
+Jet OLEDB:Create System Database=False;
+Jet OLEDB:Encrypt Database=False;
+Jet OLEDB:Don't Copy Locale on Compact=False;
+Jet OLEDB:Compact Without Replica Repair=False;
+Jet OLEDB:SFP=False;Jet OLEDB:Support Complex Data=False
