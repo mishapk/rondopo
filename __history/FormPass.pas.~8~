@@ -1,0 +1,78 @@
+unit FormPass;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, Buttons, Mask;
+
+type
+  TFormPassword = class(TForm)
+    MaskEdit1: TMaskEdit;
+    Label1: TLabel;
+    BitBtn1: TBitBtn;
+    BitBtn2: TBitBtn;
+    procedure BitBtn2Click(Sender: TObject);
+    procedure BitBtn1Click(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+  private
+    { Private declarations }
+
+  public
+    { Public declarations }
+    res: boolean;
+  end;
+
+var
+  FormPassword: TFormPassword;
+
+implementation
+
+{$R *.dfm}
+
+function C(Text: String): String;
+var
+  key, longkey: string;
+  i: integer;
+  toto: char;
+begin
+  longkey := '';
+  result := '';
+  toto := #0;
+  key := 'qaz123wsx456edc789';
+  for i := 0 to (length(Text) div length(key)) do
+    longkey := longkey + key;
+  for i := 1 to length(Text) do
+  begin
+    toto := Chr((ord(Text[i]) xor ord(longkey[i]))); // XOR алгоритм
+    result := result + toto;
+  end;
+end;
+
+procedure TFormPassword.BitBtn1Click(Sender: TObject);
+var
+  s, p: string;
+
+begin
+  s := 'CPK';
+  if MaskEdit1.Text = C(s) then
+    FormPassword.res := true
+  else
+  begin
+    FormPassword.res := false;
+    MessageDlg('Вы ввели неправильный пароль!', mtError, [mbOK], 0, mbNo);
+  end;
+
+end;
+
+procedure TFormPassword.BitBtn2Click(Sender: TObject);
+begin
+  FormPassword.res := false;
+end;
+
+procedure TFormPassword.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  Action := caFree;
+end;
+
+end.

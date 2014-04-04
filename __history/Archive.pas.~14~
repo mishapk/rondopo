@@ -1,0 +1,33 @@
+unit Archive;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, AdvSmoothPanel, AdvOfficeStatusBar, AdvOfficeStatusBarStylers, Grids,
+  AdvObj, BaseGrid, AdvGrid, DBAdvGrid, DB, ADODB, AdvSmoothTabPager,
+  AdvSmoothButton, AdvSmoothStatusIndicator, StdCtrls, ExtCtrls, ImgList, XMLDoc, XMLIntf, DateUtils;
+
+type
+  TFormArchive = class(TForm)
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  FormArchive: TFormArchive;
+
+implementation
+uses Main,framearch;
+{$R *.dfm}
+
+procedure TFormArchive.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+   Action:=caFree;
+end;
+
+end.

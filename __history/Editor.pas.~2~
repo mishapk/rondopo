@@ -1,0 +1,665 @@
+unit Editor;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, DB, DBTables, ADODB, Grids, DBGrids, ActnList, ActnMan, StdCtrls,
+  PlatformDefaultStyleActnCtrls, ToolWin, ActnCtrls, ActnMenus, ExtCtrls,
+  Menus, DBCtrls, Buttons,
+  Enterprises, Objects, Blocks, Cards, Mkus, Sensors, Links, Preferences,
+  DBClient,
+  MConnect,
+  SConnect, IdContext, IdTCPConnection, IdTCPClient, IdBaseComponent,
+  IdComponent,
+  IdCustomTCPServer, IdTCPServer, ComCtrls, Sockets, ScktComp;
+
+type
+
+  TFormEditor = class(TForm)
+    qBlocks: TADOQuery;
+    dsBlocks: TDataSource;
+    qCards: TADOQuery;
+    dsCards: TDataSource;
+    Panel1: TPanel;
+    Label1: TLabel;
+    Label3: TLabel;
+    DBGridObjects: TDBGrid;
+    DBGridEnterprises: TDBGrid;
+    qObjects: TADOQuery;
+    dsObjects: TDataSource;
+    qEnterprises: TADOQuery;
+    dsEnterprises: TDataSource;
+    Panel2: TPanel;
+    Label2: TLabel;
+    DBGridMkus: TDBGrid;
+    qMkus: TADOQuery;
+    dsMkus: TDataSource;
+    Label4: TLabel;
+    DBGridSensors: TDBGrid;
+    qSensors: TADOQuery;
+    dsSensors: TDataSource;
+    Panel3: TPanel;
+    DBGridBlocks: TDBGrid;
+    DBGridCards: TDBGrid;
+    Label5: TLabel;
+    Label6: TLabel;
+    SpeedButton1: TSpeedButton;
+    PopupMenu: TPopupMenu;
+    pmAdd: TMenuItem;
+    pmEdit: TMenuItem;
+    pmDel: TMenuItem;
+    Timer1: TTimer;
+    procedure dsObjectsDataChange(Sender: TObject; Field: TField);
+    procedure dsEnterprisesDataChange(Sender: TObject; Field: TField);
+    procedure dsMkusDataChange(Sender: TObject; Field: TField);
+    procedure dsBlocksDataChange(Sender: TObject; Field: TField);
+    procedure AddClick(Sender: TObject);
+    procedure EditClick(Sender: TObject);
+    procedure DelClick(Sender: TObject);
+    procedure LinksClick(Sender: TObject);
+    procedure RefillGrids(Sender: TObject);
+
+    procedure FormCreate(Sender: TObject);
+    procedure Timer1Timer(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+  private
+    { Private declarations }
+  public
+    Procedure load_image(SenerImage, SenderPanel: TObject; path: String);
+    Procedure load_sensor(SenerImage: TObject; path: String);
+    { Public declarations }
+  end;
+
+var
+  FormEditor: TFormEditor;
+
+implementation
+
+uses main;
+{$R *.dfm}
+
+Procedure TFormEditor.load_sensor(SenerImage: TObject; path: String);
+
+begin
+  if path <> '' then
+  begin
+
+    if FileExists(ExtractFilePath(Application.ExeName) + path) then
+    begin
+
+      if (SenerImage as TImage) <> nil then
+
+        (SenerImage as TImage).Picture.LoadFromFile
+          (ExtractFilePath(Application.ExeName) + path);
+
+    end
+    else
+    begin
+      (SenerImage as TImage).Picture := nil;
+    end;
+
+  end
+  else
+  begin
+    (SenerImage as TImage).Picture := nil;
+    // ShowMessage('Hi');
+  end;
+
+end;
+
+/// /////////////////////////////////////////////////////////////////////////////
+Procedure TFormEditor.load_image(SenerImage, SenderPanel: TObject;
+  path: String);
+begin
+  if path <> '' then
+  begin
+    if FileExists(ExtractFilePath(Application.ExeName) + path) then
+    begin
+      (SenerImage as TImage).Picture.LoadFromFile
+        (ExtractFilePath(Application.ExeName) + path);
+      (SenderPanel as TPanel).Caption := '';
+
+    end
+    else
+    begin
+
+      // (SenderPanel as TPanel).Caption:=Format('Файл "%s" не найден!',[ExtractFilePath(Application.ExeName)+path]);
+      // ShowMessage((SenderPanel as TPanel).Caption);
+      (SenerImage as TImage).Picture := nil;
+    end;
+
+  end
+  else
+  begin
+    (SenerImage as TImage).Picture := nil;
+    // ShowMessage('Hi');
+  end;
+
+end;
+
+/// /////////////////////////////////////////////////////////////////////////////
+// ---------------------------------------------
+procedure TFormEditor.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  FormMain._Object := qObjects.Fields.FieldByName('Код').AsString;
+  FormMain._Enterprise := qEnterprises.Fields.FieldByName('Код').AsString;
+  FormMain._MKU := qMkus.Fields.FieldByName('Код').AsString;
+  FormMain.LoadSensor(FormMain._Enterprise, FormMain._Object, FormMain._MKU);
+
+  Action := caFree;
+end;
+
+procedure TFormEditor.FormCreate(Sender: TObject);
+begin
+  // FormEditor.qEnterprises.SQL.Clear;
+  // ShowMessage('select * from ENTERPRISES ORDER BY ENTERPRISES.Код ASC WHERE Код='+FormMain._Enterprise);
+  qEnterprises.Active := True;
+  qEnterprises.First;
+  // ShowMessage(FormMain._Object);
+  while (not qEnterprises.Eof) do
+
+  begin
+    if qEnterprises.Fields.FieldByName('Код')
+      .AsString = FormMain._Enterprise Then
+      break
+    else
+      qEnterprises.Next;
+  end;
+
+end;
+
+// ---------------------------------------------
+procedure TFormEditor.AddClick(Sender: TObject);
+begin
+
+  if DBGridEnterprises.Focused and qEnterprises.Active then
+  begin
+    Application.CreateForm(TFormEnterprises, FormEnterprises);
+    FormEnterprises.Caption := 'Добавление нового предприятия';
+    FormEnterprises.Position := poScreenCenter;
+    FormEnterprises.Tag := 0;
+    FormEnterprises.ShowModal;
+  end;
+
+  if DBGridObjects.Focused and qObjects.Active then
+  begin
+    Application.CreateForm(TFormObjects, FormObjects);
+    FormObjects.Caption := 'Добавление нового объекта';
+    FormObjects.Position := poScreenCenter;
+    FormObjects.Tag := 0;
+    FormObjects.ShowModal;
+  end;
+
+  if DBGridMkus.Focused and qMkus.Active then
+  begin
+    Application.CreateForm(TFormMkus, FormMkus);
+    FormMkus.Caption := 'Добавление нового МКУ';
+    FormMkus.Position := poScreenCenter;
+    FormMkus.Tag := 0;
+    FormMkus.ShowModal;
+  end;
+
+  if DBGridSensors.Focused and qSensors.Active then
+  begin
+    Application.CreateForm(TFormSensors, FormSensors);
+    FormSensors.Caption := 'Добавление нового датчика';
+    FormSensors.Position := poScreenCenter;
+    FormSensors.Tag := 0;
+    FormSensors.ShowModal;
+  end;
+
+  if DBGridBlocks.Focused and qBlocks.Active then
+  begin
+    Application.CreateForm(TFormBlocks, FormBlocks);
+    FormBlocks.Caption := 'Добавление нового блока';
+    FormBlocks.Position := poScreenCenter;
+    FormBlocks.Tag := 0;
+    FormBlocks.ShowModal;
+  end;
+
+  if DBGridCards.Focused and qCards.Active then
+  begin
+    Application.CreateForm(TFormCards, FormCards);
+    FormCards.Caption := 'Добавление новой карточки';
+    FormCards.Position := poScreenCenter;
+    FormCards.Tag := 0;
+    FormCards.ShowModal;
+  end;
+
+end;
+
+// ---------------------------------------------
+procedure TFormEditor.EditClick(Sender: TObject);
+begin
+  if DBGridEnterprises.Focused and qEnterprises.Active and
+    (qEnterprises.RecordCount > 0) then
+  begin
+    Application.CreateForm(TFormEnterprises, FormEnterprises);
+    FormEnterprises.Caption := 'Редактирование предприятия';
+    FormEnterprises.Position := poScreenCenter;
+    FormEnterprises.Edit1.Text := qEnterprises.Fields.FieldByName
+      ('EnterpriseName').AsString;
+    FormEnterprises.Edit2.Text := qEnterprises.Fields.FieldByName
+      ('EnterpriseAdress').AsString;
+    FormEnterprises.Tag := qEnterprises.Fields.FieldByName('Код').AsInteger;
+    FormEnterprises.ShowModal;
+  end;
+
+  if DBGridObjects.Focused and qObjects.Active and
+    (qObjects.RecordCount > 0) then
+  begin
+    Application.CreateForm(TFormObjects, FormObjects);
+    FormObjects.Caption := 'Редактирование объекта';
+    FormObjects.Position := poScreenCenter;
+    FormObjects.Edit1.Text := qObjects.Fields.FieldByName
+      ('ObjectPlace').AsString;
+    FormObjects.Edit2.Text := qObjects.Fields.FieldByName('ObjectName')
+      .AsString;
+    FormObjects.Edit3.Text := qObjects.Fields.FieldByName('Префикс').AsString;
+    FormObjects.Edit4.Text := qObjects.Fields.FieldByName('КодПОО').AsString;
+
+    // FormObjects.Image1.Picture.Assign(qObjects.Fields.FieldByName('IMG'));
+    FormObjects.Tag := qObjects.Fields.FieldByName('Код').AsInteger;
+    FormObjects.ShowModal;
+  end;
+
+  if DBGridMkus.Focused and qMkus.Active and (qMkus.RecordCount > 0) then
+  begin
+    Application.CreateForm(TFormMkus, FormMkus);
+    FormMkus.Hide;
+    FormMkus.Caption := 'Редактирование МКУ';
+    FormMkus.Position := poScreenCenter;
+    FormMkus.Edit2.Text := qMkus.Fields.FieldByName('MkuPlace').AsString;
+    FormMkus.Edit3.Text := qMkus.Fields.FieldByName('MkuImage').AsString;
+    FormMkus.Edit4.Text := qMkus.Fields.FieldByName('MkuID').AsString;
+    FormMkus.Tag := qMkus.Fields.FieldByName('Код').AsInteger;
+    // ----------------------------------------------------------------------------
+    FormMkus.ADOQuerySenSet.SQL.Clear;
+    FormMkus.ADOQuerySenSet.SQL.Add('SELECT *,TYPESEN.Код');
+    FormMkus.ADOQuerySenSet.SQL.Add
+      ('FROM TYPESEN INNER JOIN SEN_SET ON TYPESEN.Код = SEN_SET.TypeKOD');
+    FormMkus.ADOQuerySenSet.SQL.Add(Format('WHERE (((KOD_MKU)=%d));',
+      [FormMkus.Tag]));
+    FormMkus.ADOQuerySenSet.Active := True;
+    FormMkus.DBEditPI_1.DataField := 'Image1';
+    FormMkus.DBEditPI_2.DataField := 'Image2';
+    FormMkus.DBEditPI_3.DataField := 'Image3';
+    FormMkus.DBEditPI_4.DataField := 'Image4';
+    FormMkus.DBEditP_1.DataField := 'PorogI';
+    FormMkus.DBEditP_2.DataField := 'PorogII';
+    FormMkus.DBEditP_3.DataField := 'PorogIII';
+    FormMkus.DBEditUnits.DataField := 'Units';
+    FormMkus.DBEdit_Gisterezis.DataField := 'Gister';
+    FormMkus.DBEditSize.DataField := 'Size';
+
+    FormMkus.DBEditTYPE_NAME.DataField := 'TYPE_NAME';
+
+    FormEditor.load_image(FormMkus.ImageP1, FormMkus.PP1,
+      FormMkus.ADOQuerySenSet.Fields.FieldByName('Image1').AsString);
+    FormEditor.load_image(FormMkus.ImageP2, FormMkus.PP2,
+      FormMkus.ADOQuerySenSet.Fields.FieldByName('Image2').AsString);
+    FormEditor.load_image(FormMkus.ImageP3, FormMkus.PP3,
+      FormMkus.ADOQuerySenSet.Fields.FieldByName('Image3').AsString);
+    FormEditor.load_image(FormMkus.ImageP4, FormMkus.PP4,
+      FormMkus.ADOQuerySenSet.Fields.FieldByName('Image4').AsString);
+    // ----------------------------------------------------------------------------
+
+    if FileExists(ExtractFilePath(Application.ExeName) +
+      qMkus.Fields.FieldByName('MkuImage').AsString) then
+    begin
+
+      FormMkus.Image1.Picture.LoadFromFile(ExtractFilePath(Application.ExeName)
+        + qMkus.Fields.FieldByName('MkuImage').AsString);
+      FormMkus.Panel1.Caption := '';
+
+    end
+    else
+    begin
+
+      FormMkus.Panel1.Caption := Format('Файл "%s" не найден!',
+        [ExtractFilePath(Application.ExeName) + qMkus.Fields.FieldByName
+        ('MkuImage').AsString]);
+      FormMkus.Image1.Picture.Bitmap.FreeImage;
+    end;
+
+    try
+      // FormMkus.WebBrowser.Navigate(ExtractFilePath(Application.ExeName)
+      // + 'objects\' + qMkus.Fields.FieldByName('MkuImage').AsString);
+      // while FormCards.WebBrowser.Busy do     sleep(5);
+    except
+    end;
+    FormMkus.ShowModal;
+  end;
+
+  if DBGridSensors.Focused and qSensors.Active and
+    (qSensors.RecordCount > 0) then
+  begin
+    Application.CreateForm(TFormSensors, FormSensors);
+    FormSensors.Caption := 'Редактирование датчика';
+    FormSensors.Position := poScreenCenter;
+    FormSensors.Edit1.Text := qSensors.Fields.FieldByName('SensorID').AsString;
+    FormSensors.Edit4.Text := qSensors.Fields.FieldByName('Sensortype')
+      .AsString;
+    FormSensors.Edit3.Text := qSensors.Fields.FieldByName
+      ('SensorParameter').AsString;
+    FormSensors.Edit2.Text := qSensors.Fields.FieldByName
+      ('SensorPlace').AsString;
+    FormSensors.Tag := qSensors.Fields.FieldByName('Код').AsInteger;
+    FormSensors.ShowModal;
+  end;
+
+  if DBGridBlocks.Focused and qBlocks.Active and (qBlocks.RecordCount > 0) then
+  begin
+    Application.CreateForm(TFormBlocks, FormBlocks);
+    FormBlocks.Caption := 'Редактирование Блока';
+    FormBlocks.Position := poScreenCenter;
+    FormBlocks.Edit1.Text := qBlocks.Fields.FieldByName('BlockID').AsString;
+    FormBlocks.Edit2.Text := qBlocks.Fields.FieldByName('Danger').AsString;
+    FormBlocks.Memo1.Text := qBlocks.Fields.FieldByName('Описание').AsString;
+
+    FormBlocks.Tag := qBlocks.Fields.FieldByName('Код').AsInteger;
+    FormBlocks.ShowModal;
+  end;
+
+  if DBGridCards.Focused and qCards.Active and (qCards.RecordCount > 0) then
+  begin
+    Application.CreateForm(TFormCards, FormCards);
+    FormCards.Caption := 'Редактирование Карточек аварий';
+    FormCards.Position := poScreenCenter;
+    FormCards.ComboBox1.ItemIndex := FormCards.ComboBox1.Items.IndexOf
+      (qCards.Fields.FieldByName('AirStream').AsString);
+    FormCards.ComboBox2.ItemIndex := FormCards.ComboBox2.Items.IndexOf
+      (qCards.Fields.FieldByName('Temp').AsString);
+    FormCards.ComboBox3.ItemIndex := FormCards.ComboBox3.Items.IndexOf
+      (qCards.Fields.FieldByName('WindSpeed').AsString);
+    FormCards.ComboBox4.ItemIndex := FormCards.ComboBox4.Items.IndexOf
+      (qCards.Fields.FieldByName('Sector').AsString);
+    FormCards.Edit5.Text := qCards.Fields.FieldByName('Filename').AsString;
+    FormCards.Edit1.Text := qCards.Fields.FieldByName('CARD_ID').AsString;
+    FormCards.Tag := qCards.Fields.FieldByName('Код').AsInteger;
+
+    try
+      // ShowMessage(ExtractFilePath(Application.ExeName) + qCards.Fields.FieldByName('Filename').AsString);
+
+      FormCards.WebBrowser.Navigate(ExtractFilePath(Application.ExeName) +
+        'objects\' + qCards.Fields.FieldByName('Filename').AsString);
+      while FormCards.WebBrowser.Busy do
+        sleep(5);
+    except
+    end;
+    FormCards.ShowModal;
+  end;
+
+end;
+
+// ---------------------------------------------
+procedure TFormEditor.DelClick(Sender: TObject);
+const
+  ask = 'Вы действительно хотите удалить запись ?';
+
+begin
+
+  if DBGridEnterprises.Focused and qEnterprises.Active and
+    (qEnterprises.RecordCount <> 0) then
+  begin
+    if MessageDlg(ask, mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+    begin
+      qEnterprises.Delete;
+      // qEnterprises.Refresh;
+      qCards.Active := False; // Refresh;
+      qBlocks.Active := False; // Refresh;
+      qSensors.Active := False; // Refresh;
+      qMkus.Active := False; // Refresh;
+      qObjects.Active := False; // Refresh;
+    end;
+  end;
+
+  if DBGridObjects.Focused and qObjects.Active and
+    (qObjects.RecordCount <> 0) then
+  begin
+    if MessageDlg(ask, mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+    begin
+      qObjects.Delete;
+      qObjects.Refresh;
+      qMkus.Active := False; // Refresh;
+      qSensors.Active := False; // Refresh;
+      qBlocks.Active := False; // Refresh;
+      qCards.Active := False; // Refresh;
+    end;
+  end;
+
+  if DBGridMkus.Focused and qMkus.Active and (qMkus.RecordCount <> 0) then
+  begin
+    if MessageDlg(ask, mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+    begin
+      qMkus.Delete;
+      qMkus.Refresh;
+      qSensors.Active := False; // Refresh;
+    end;
+  end;
+
+  if DBGridSensors.Focused and qSensors.Active and
+    (qSensors.RecordCount <> 0) then
+  begin
+    if MessageDlg(ask, mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+    begin
+      qSensors.Delete;
+      qSensors.Refresh;
+    end;
+  end;
+
+  if DBGridBlocks.Focused and qBlocks.Active and (qBlocks.RecordCount <> 0) then
+  begin
+    if MessageDlg(ask, mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+    begin
+      qBlocks.Delete;
+      qBlocks.Refresh;
+      qCards.Active := False; // Refresh;
+    end;
+  end;
+
+  if DBGridCards.Focused and qCards.Active and (qCards.RecordCount <> 0) then
+  begin
+    if MessageDlg(ask, mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+    begin
+      qCards.Delete;
+      qCards.Refresh;
+    end;
+  end;
+
+  RefillGrids(nil);
+
+end;
+
+// ---------------------------------------------
+procedure TFormEditor.dsEnterprisesDataChange(Sender: TObject; Field: TField);
+begin
+
+  // Отключение
+  qObjects.Active := False;
+  qMkus.Active := False;
+  qBlocks.Active := False;
+  qSensors.Active := False;
+  qCards.Active := False;
+
+  // Выход, если предприятий нет
+  if dsEnterprises.DataSet.RecordCount = 0 then
+    exit;
+
+  // Обновление Объектов
+  try
+    qObjects.SQL.Text := 'select * from OBJECTS where EnterpriseКод=' +
+      dsEnterprises.DataSet.Fields.FindField('Код').AsString +
+      ' ORDER BY Код ASC';
+    qObjects.Active := True;
+
+  except
+  end;
+  qObjects.First;
+  while not qObjects.Eof do
+  begin
+    if qObjects.Fields.FieldByName('Код').AsString = FormMain._Object Then
+      break
+    else
+      qObjects.Next;
+
+  end;
+  // Обновить таблицы
+  // RefillGrids(Sender);
+end;
+
+// ---------------------------------------------
+procedure TFormEditor.dsObjectsDataChange(Sender: TObject; Field: TField);
+begin
+
+  // Отключение
+  qMkus.Active := False;
+  qBlocks.Active := False;
+
+  // Выход, если объектов нет
+  if dsObjects.DataSet.RecordCount = 0 then
+    exit;
+
+  // обновление МКУ
+  try
+    qMkus.SQL.Text := 'select * from MKUS where ObjectКод=' +
+      dsObjects.DataSet.Fields.FindField('Код').AsString + ' ORDER BY Код ASC';
+    qMkus.Active := True;
+  except
+  end;
+  qMkus.First;
+  while not qMkus.Eof do
+  begin
+    // ShowMessage(FormMain._MKU+'   :   '+qMkus.Fields.FieldByName('Код').AsString);
+    if qMkus.Fields.FieldByName('Код').AsString = FormMain._MKU Then
+      break
+    else
+      qMkus.Next;
+
+  end;
+  // обновление Блоков
+  try
+    qBlocks.SQL.Text := 'select * from Blocks where ObjectКод=' +
+      dsObjects.DataSet.Fields.FindField('Код').AsString + ' ORDER BY Код ASC';
+    qBlocks.Active := True;
+  except
+  end;
+
+  // Обновить таблицы
+  // RefillGrids(Sender);
+
+  // Загрузка изображения на главную форму
+  { if FileExists(qObjects.Fields.FieldByName('IMG').AsString) then
+    begin
+    FormMain.Image1.Picture.LoadFromFile(qObjects.Fields.FieldByName('IMG').AsString);
+    FormMain.Panel1.Caption:='';
+    // FormMain._Object:=qObjects.Fields.FieldByName('Код').AsString;
+    end
+    else
+    begin
+    FormMain.Panel1.Caption:=Format('Файл "%s" не найден!',[qObjects.Fields.FieldByName('IMG').AsString]);
+    FormMain.Image1.Picture.Bitmap.FreeImage;
+    end; }
+  // FormMain._Object:= qObjects.Fields.FieldByName('Код').AsString;
+  // FormMain.Caption:=FormMain._Object;
+end;
+
+// ---------------------------------------------
+procedure TFormEditor.dsMkusDataChange(Sender: TObject; Field: TField);
+begin
+
+  // Отключение
+  qSensors.Active := False;
+
+  // Выход, если MKU нет
+  if dsMkus.DataSet.RecordCount = 0 then
+    exit;
+
+  // обновление Датчиков
+  try
+    qSensors.SQL.Text :=
+      'SELECT SENSORS.MkuКод, SENSORS.Код,TYPESEN.TYPE_NAME, * from TYPESEN INNER JOIN SENSORS ON TYPESEN.Код = SENSORS.SensorType where SENSORS.MkuКод='
+      + dsMkus.DataSet.Fields.FindField('Код').AsString +
+      ' ORDER BY SENSORS.Код;';
+    qSensors.Active := True;
+  except
+  end;
+
+  // Обновить таблицы
+  // RefillGrids(Sender);
+end;
+
+// ---------------------------------------------
+procedure TFormEditor.dsBlocksDataChange(Sender: TObject; Field: TField);
+begin
+
+  // Отключение
+  qCards.Active := False;
+
+  // Выход, если Блоков нет
+  if dsBlocks.DataSet.RecordCount = 0 then
+    exit;
+
+  // обновление карточек
+  try
+    qCards.SQL.Text := 'select * from Cards where BlockКод=' +
+      dsBlocks.DataSet.Fields.FindField('Код').AsString + ' ORDER BY Код ASC';
+    qCards.Active := True;
+  except
+  end;
+
+  // Обновить таблицы
+  // RefillGrids(Sender);
+end;
+
+// ---------------------------------------------
+procedure TFormEditor.RefillGrids(Sender: TObject);
+begin
+
+  // exit;
+  qEnterprises.Active := True;
+  qObjects.Active := True;
+  qMkus.Active := True;
+  qBlocks.Active := True;
+  qSensors.Active := True;
+  qCards.Active := True;
+
+  if qEnterprises.Active and (qEnterprises.RecordCount > 0) then
+    dsEnterprisesDataChange(nil, nil);
+  if qObjects.Active and (qObjects.RecordCount > 0) then
+    dsObjectsDataChange(nil, nil);
+  if qMkus.Active and (qMkus.RecordCount > 0) then
+    dsMkusDataChange(nil, nil);
+  if qBlocks.Active and (qBlocks.RecordCount > 0) then
+    dsBlocksDataChange(nil, nil);
+end;
+
+// ---------------------------------------------
+procedure TFormEditor.Timer1Timer(Sender: TObject);
+var
+  i, j: integer;
+begin
+  // for i := 0 to ComponentCount - 1 do begin
+  // if Components[i].ClassName = 'TPanel' then with Components[i] as TPanel do begin
+  // for j := 0 to Components[i].ComponentCount - 1 do
+  // if Components[i].Components[j].ClassName = 'TDBGrig' then
+  // with Components[i].Components[j] as TDBGrid do
+  // if Focused then
+  // Color := clCream
+  // else
+  // Color := clWhite;
+  //
+  // end;
+  // end;
+
+end;
+
+// ---------------------------------------------
+procedure TFormEditor.LinksClick(Sender: TObject);
+begin
+  Application.CreateForm(TFormLinks, FormLinks);
+  FormLinks.ShowModal;
+end;
+
+end.

@@ -1,0 +1,29 @@
+unit FormPass;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, Buttons, Mask;
+
+type
+  TFormPassword = class(TForm)
+    MaskEdit1: TMaskEdit;
+    Label1: TLabel;
+    BitBtn1: TBitBtn;
+    BitBtn2: TBitBtn;
+  private
+    { Private declarations }
+      res:boolean;
+  public
+    { Public declarations }
+  end;
+
+var
+  FormPassword: TFormPassword;
+
+implementation
+
+{$R *.dfm}
+
+end.

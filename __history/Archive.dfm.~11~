@@ -1,0 +1,75 @@
+object FormArchive: TFormArchive
+  Left = 0
+  Top = 0
+  Caption = #1040#1088#1093#1080#1074' '#1089#1086#1073#1099#1090#1080#1081
+  ClientHeight = 514
+  ClientWidth = 675
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  OnClose = FormClose
+  PixelsPerInch = 96
+  TextHeight = 13
+  inline ArchFrame1: TArchFrame
+    Left = 0
+    Top = 0
+    Width = 675
+    Height = 514
+    Align = alClient
+    TabOrder = 0
+    ExplicitLeft = -7
+    ExplicitTop = 56
+    inherited AdvSmoothTabPager1: TAdvSmoothTabPager
+      Width = 675
+      Height = 514
+      inherited AdvSmoothTabPager11: TAdvSmoothTabPage
+        Width = 675
+        Height = 514
+        ExplicitWidth = 675
+        ExplicitHeight = 514
+        inherited AdvOfficeStatusBar1: TAdvOfficeStatusBar
+          Top = 493
+          Width = 671
+        end
+        inherited DBAdvGrid1: TDBAdvGrid
+          Width = 381
+          Height = 491
+          ExplicitWidth = 388
+          ExplicitHeight = 417
+        end
+        inherited AdvSmoothPanel1: TAdvSmoothPanel
+          Left = 383
+          Height = 491
+          ExplicitLeft = 390
+          ExplicitHeight = 417
+        end
+      end
+      inherited AdvSmoothTabPager12: TAdvSmoothTabPage
+        Width = 675
+        Height = 514
+        ExplicitWidth = 675
+        ExplicitHeight = 514
+        inherited SG: TAdvStringGrid
+          Width = 671
+          Height = 471
+          ExplicitWidth = 678
+          ExplicitHeight = 397
+        end
+        inherited PanelMessage: TAdvSmoothPanel
+          Width = 671
+          ExplicitWidth = 678
+        end
+      end
+      inherited AdvSmoothTabPager13: TAdvSmoothTabPage
+        Width = 675
+        Height = 514
+        ExplicitWidth = 675
+        ExplicitHeight = 514
+      end
+    end
+  end
+end

@@ -1,0 +1,80 @@
+unit FormReg;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, ExtCtrls, Buttons;
+
+type
+  TRegForm = class(TForm)
+    LabeledEdit1: TLabeledEdit;
+    LabeledEdit2: TLabeledEdit;
+    BitBtn1: TBitBtn;
+    BitBtn2: TBitBtn;
+    procedure BitBtn2Click(Sender: TObject);
+    procedure BitBtn1Click(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  RegForm: TRegForm;
+
+implementation
+
+uses Main, ADODB, md5hash;
+
+{$R *.dfm}
+
+procedure TRegForm.BitBtn1Click(Sender: TObject);
+var
+  ADO: TADOQuery;
+  key: string;
+begin
+  key := md5(c(RegForm.LabeledEdit1.Text));
+  ADO := TADOQuery.Create(nil);
+  ADO.Connection := FormMain.ADOConnection;
+  ADO.SQL.Clear;
+  ADO.SQL.Add
+    ('SELECT * FROM SETINGS WHERE (((SETINGS.GROUP_)="Password") AND ((SETINGS.NAME_)="Registration"));');
+
+  ADO.Active := true;
+  // --------------------
+  if key = RegForm.LabeledEdit2.Text then
+  begin
+    ADO.Edit;
+    ADO.Fields.FieldByName('Value_').AsString := RegForm.LabeledEdit2.Text;
+    ADO.Post;
+    FormMain.Left := 0;
+    RegForm.BitBtn1.Enabled := false;
+    RegForm.LabeledEdit2.ReadOnly := true;
+    RegForm.Caption := 'Регистрация. Программа зарегистрирована';
+    MessageDlg
+      ('Программа зарегистрирована удачно!'#13#10'Спасибо за регистрацию.',
+      mtInformation, [mbOK], 0);
+    Close;
+  end
+  else
+  begin
+    MessageDlg('Не верный ключь регистрации!', mtError, [mbOK], 0);
+
+  end;
+  // --------------------
+  ADO.Active := false;
+  ADO.Free;
+end;
+
+procedure TRegForm.BitBtn2Click(Sender: TObject);
+begin
+  if not FormMain.RegistrationCompare(RegForm.LabeledEdit1.Text) then
+  begin
+
+    ShowWindow(FormMain.Handle, SW_HIDE);
+    Application.Terminate;
+  end;
+end;
+
+end.

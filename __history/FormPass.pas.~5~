@@ -1,0 +1,57 @@
+unit FormPass;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, Buttons, Mask;
+
+type
+  TFormPassword = class(TForm)
+    MaskEdit1: TMaskEdit;
+    Label1: TLabel;
+    BitBtn1: TBitBtn;
+    BitBtn2: TBitBtn;
+    procedure BitBtn2Click(Sender: TObject);
+    procedure BitBtn1Click(Sender: TObject);
+  private
+    { Private declarations }
+
+  public
+    { Public declarations }
+    res:boolean;
+  end;
+
+var
+  FormPassword: TFormPassword;
+
+implementation
+
+{$R *.dfm}
+
+procedure TFormPassword.BitBtn1Click(Sender: TObject);
+var s,p:string;
+    a,b,k:word;
+    i:integer;
+begin
+   s:='rondo2011';
+   k:=49;
+   for i:=1 to length(s)do
+   begin
+      a:=integer(s[i]);
+   asm
+     b:=a xor k;
+   end;
+     p[i]:=string(b);
+   end;
+   showmessage(p);
+  // if MaskEdit1.Text then
+
+end;
+
+procedure TFormPassword.BitBtn2Click(Sender: TObject);
+begin
+   FormPassword.res:=false;
+end;
+
+end.

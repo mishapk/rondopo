@@ -1,0 +1,30 @@
+unit FormMessage;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, AdvGlassButton, StdCtrls, AdvSmoothPanel;
+
+type
+  TMessageForm = class(TForm)
+    PanelMessage: TAdvSmoothPanel;
+    LabelTimer: TLabel;
+    ColorButton1: TAdvGlassButton;
+    ColorButton2: TAdvGlassButton;
+    ColorButton3: TAdvGlassButton;
+    ColorButton4: TAdvGlassButton;
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  MessageForm: TMessageForm;
+
+implementation
+
+{$R *.dfm}
+
+end.

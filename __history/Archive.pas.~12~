@@ -1,0 +1,165 @@
+unit Archive;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, AdvSmoothPanel, AdvOfficeStatusBar, AdvOfficeStatusBarStylers, Grids,
+  AdvObj, BaseGrid, AdvGrid, DBAdvGrid, DB, ADODB, AdvSmoothTabPager,
+  AdvSmoothButton, AdvSmoothStatusIndicator, StdCtrls, ExtCtrls, ImgList, XMLDoc, XMLIntf, DateUtils;
+
+type
+  TFormArchive = class(TForm)
+    DBAdvGrid1: TDBAdvGrid;
+    AdvOfficeStatusBar1: TAdvOfficeStatusBar;
+    AdvSmoothPanel1: TAdvSmoothPanel;
+    ADOQuery1: TADOQuery;
+    DataSource1: TDataSource;
+    AdvSmoothTabPager1: TAdvSmoothTabPager;
+    AdvSmoothTabPager11: TAdvSmoothTabPage;
+    AdvSmoothTabPager12: TAdvSmoothTabPage;
+    AdvSmoothTabPager13: TAdvSmoothTabPage;
+    SG: TAdvStringGrid;
+    PanelMessage: TAdvSmoothPanel;
+    AdvOfficeStatusBarOfficeStyler1: TAdvOfficeStatusBarOfficeStyler;
+    Timer1: TTimer;
+    ImageList1: TImageList;
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure DataSource1DataChange(Sender: TObject; Field: TField);
+    procedure FormCreate(Sender: TObject);
+    procedure Timer1Timer(Sender: TObject);
+    procedure XMLtoGRID;
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  FormArchive: TFormArchive;
+
+implementation
+uses Main;
+{$R *.dfm}
+
+procedure TFormArchive.DataSource1DataChange(Sender: TObject; Field: TField);
+begin
+   AdvOfficeStatusBar1.Panels.Items[1].Text:='Всего записей:'+IntToStr(ADOQuery1.RecordCount);
+   AdvOfficeStatusBar1.Panels.Items[0].Text:='Номер записи:'+IntToStr(ADOQuery1.RecNo);
+end;
+
+procedure TFormArchive.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+   Action:=caFree;
+end;
+
+procedure TFormArchive.FormCreate(Sender: TObject);
+var i:integer;
+begin
+    SG.Cells[0,0]:='№ п.п.';
+    SG.Cells[1,0]:='Дата/Время';
+    SG.Cells[2,0]:='ID';
+    SG.Cells[3,0]:='Объект связи';
+    SG.Cells[4,0]:='Состояние';
+    SG.Cells[5,0]:='Примечание';
+    for i := 1 to 128 do
+   SG.AddDataImage(4, i, 0, haCenter, vaTop)
+end;
+
+procedure TFormArchive.Timer1Timer(Sender: TObject);
+begin
+   SG.Cells[3,1]:='Связь АРМ с сервером';
+   if  online_ then  SG.Cells[4,1]:='2' else SG.Cells[4,1]:='1';
+
+   SG.Cells[3,2]:='Авторизация на сервере';
+   if  Autorization_ then  SG.Cells[4,2]:='2' else SG.Cells[4,2]:='1';
+   // SG.Cells[1,2]:=DateToStr(Date)+ ' '+ TimeToStr(Time);
+   SG.Cells[3,3]:='Связь с концентратором';
+   XMLtoGRID;
+end;
+Procedure TFormArchive.XMLtoGRID;
+   var e,n,g:IXMLNode;
+    XMLDoc: IXMLDocument;
+    i,t,j:integer;
+    s,p:string;
+    time1: TDateTime;
+begin
+
+
+
+
+
+    XMLDoc:=TXMLDocument.Create(nil);
+    try
+       XMLDoc.Active := True;
+
+   XMLDoc.XML.Text:=XMLLoad;
+
+
+
+BEGIN
+
+      // if XMLTEXT='' then begin XMLDoc.Active := False; XMLDoc:=nil; exit end;
+
+       if not Autorization_ then
+
+         //АвтоАвторизхируемся.
+         Begin
+
+         //  AutoAutorization('');
+
+         End
+         else
+   BEGIN
+        Autorization_:=true;
+         XMLDoc.Active := True;
+         n:=XMLDoc.DocumentElement.ChildNodes[0];
+         t:=0;
+         j:=4;
+        if n<>nil then
+           repeat
+               s:='';
+               e:=n.ChildNodes[0];
+           if t=0 then
+           begin
+
+            SG.Cells[1,1]:=n.ChildValues['created'];
+           end
+        else
+           begin
+
+             if POS('Свя',n.ChildValues['name'])<>0 then
+              begin
+                 if MinutesBetween(Now,StrToDateTime(n.ChildValues['arrival']))>15 then
+                 begin
+                 SG.Cells[4,3]:='1';
+                 SG.Cells[5,j]:= 'Не актуально';
+                 end else SG.Cells[4,3]:='2';
+
+                 SG.Cells[1,j]:=n.ChildValues['arrival'];
+                 SG.Cells[2,j]:=n.ChildValues['id'];
+                 SG.Cells[3,j]:=n.ChildValues['name'];
+                 if n.ChildValues['level']='0' then  SG.Cells[4,j]:='2' else SG.Cells[4,j]:='1';
+
+                 j:=j+1;
+                 if SG.RowCount<j then SG.RowCount:=j;
+
+              end;
+           end;
+         //  ShowMessage('Hello');
+        //   ChengeSensorOnForm(n.ChildValues['id'],n.ChildValues['name'],n.ChildValues['value'],n.ChildValues['level'],n.ChildValues['threshold']);
+           t:=t+1;
+           n:=n.NextSibling;
+       until n=nil;
+                                          //
+        XMLDoc.Active := False;
+
+   END;
+END;
+   finally
+         XMLDoc := nil;
+   end;
+
+   XMLDoc := nil;
+end;
+end.

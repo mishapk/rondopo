@@ -1,0 +1,33 @@
+unit FormtTestGSM;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs,  Grids, DBGrids, DB, ADODB;
+
+type
+  TTestGSMForm = class(TForm)
+    ADOTable1: TADOTable;
+    DataSource1: TDataSource;
+    DBGrid1: TDBGrid;
+    procedure FormShow(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  TestGSMForm: TTestGSMForm;
+
+implementation
+
+{$R *.dfm}
+
+procedure TTestGSMForm.FormShow(Sender: TObject);
+begin
+   ADOTable1.Active:=true;
+end;
+
+end.

@@ -1,0 +1,4 @@
+send AT+CHUP^m
+wait ok 72
+display 'Оповещение окончено'
+&EO

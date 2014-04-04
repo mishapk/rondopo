@@ -1,0 +1,45 @@
+program ChoiseCard;
+
+uses
+  Forms,
+  Editor in 'Editor.pas' {FormEditor},
+  Sensors in 'Sensors.pas' {FormSensors},
+  Cards in 'Cards.pas' {FormCards},
+  Blocks in 'Blocks.pas' {FormBlocks},
+  Preferences in 'Preferences.pas' {FormPreferences},
+  Enterprises in 'Enterprises.pas' {FormEnterprises},
+  Objects in 'Objects.pas' {FormObjects},
+  Mkus in 'Mkus.pas' {FormMkus},
+  Links in 'Links.pas' {FormLinks},
+  About in 'About.pas' {FormAbout},
+  AddBlock in 'AddBlock.pas' {FormAddBlock},
+  Input in 'Input.pas' {FormInput},
+  Main in 'Main.pas' {FormMain},
+  Tendency in 'Tendency.pas' {FormTendency},
+  SelectCard in 'SelectCard.pas' {FormSelect},
+  ShowAndSendCard in 'ShowAndSendCard.pas' {FormShowAndSend},
+  Options in 'Options.pas' {OptionsForm},
+  Autorization in 'Autorization.pas' {FormAutorization},
+  FormPass in 'FormPass.pas' {FormPassword},
+  FormReg in 'FormReg.pas' {RegForm},
+  Archive in 'Archive.pas' {FormArchive},
+  framearch in 'framearch.pas' {ArchFrame: TFrame},
+  FormMessage in 'FormMessage.pas' {MessageForm};
+
+{$R *.res}
+
+begin
+  TestComplet;
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  RegForm := TRegForm.Create(Application);
+  Application.CreateForm(TFormMain, FormMain);
+  Application.CreateForm(TOptionsForm, OptionsForm);
+  Application.CreateForm(TFormAutorization, FormAutorization);
+  Application.CreateForm(TFormPassword, FormPassword);
+  Application.CreateForm(TMessageForm, MessageForm);
+  // Application.CreateForm(TFormArchive, FormArchive);
+  // Application.CreateForm(TRegForm, RegForm);
+  Application.Run;
+
+end.

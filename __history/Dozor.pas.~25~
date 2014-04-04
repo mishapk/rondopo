@@ -1,0 +1,359 @@
+unit Dozor;
+
+interface
+ function serchcommand(sb,st:string):integer;
+  procedure relise_command(ncom:integer;path:string);
+   procedure scan_command;
+  Function DozorXML:String;
+  Function X305_XML:String;
+ function result1(a:integer):String;
+ function ReadRI(s:AnsiString):AnsiString;
+ function ReadBitX305(a:word):AnsiString;
+  procedure  CloseComPort; stdcall; external 'dozor.dll';
+ function  OpenComPort(portname:PAnsiChar;BaudRate:integer):integer; stdcall; external 'dozor.dll';
+ procedure  FormatZapr( Adress,  funct,  subfunct,  n1,  n2, n3:integer); stdcall; external 'dozor.dll';
+ procedure ResultZapr( var a:integer; var b:integer; var c:PAnsichar; var d:PAnsiChar ; var e:PAnsiChar); stdcall; external 'dozor.dll';
+ //a-adress; b-znathenee=1,2,3,4,5; c-koncenracia; d-polnaya stroka otveta; e-kol-vo prohodov;
+procedure  FormatZapr_X305( Adress,  funct,  subfunct:integer); stdcall; external 'dozor.dll';
+ procedure ResultZapr_X305( var a:integer; var b:integer; var c:integer; var d:integer); stdcall; external 'dozor.dll';
+
+  //------------------------------------------------------------------------------------------------------------------------------------
+
+ function GetPi:integer; stdcall; external 'dozor.dll';
+ procedure I700_b( path:PAnsiChar); stdcall; external 'dozor.dll';
+ procedure I700_a(  pp,adr,fun:PAnsiChar); stdcall; external 'dozor.dll';
+ procedure playcontrol_a(  adr,  fun,  sfun:integer;   path:PAnsiChar); stdcall; external 'dozor.dll';
+ procedure playcontrol_b(  adr,  fun,  sfun,   path:Integer); stdcall; external 'dozor.dll';
+ //-------------------------------------------------------------------------------------------------------------------------------------
+ var flagcommand:boolean;
+     global_command:integer;
+     global_path:string;
+     global_b:integer;
+     global_pause:boolean;
+     global_sb,global_st:string;
+ implementation
+Uses SysUtils,xmldom, XMLIntf, StdCtrls, msxmldom, XMLDoc,ActiveX,Dialogs,WinProcs,Main,Math;
+ const adr:array[1..4]of integer=(1,33,34,35);
+ const sdr:array[1..4]of string=('РИ','Уровень','Концентрация','Температура');
+function result1(a:integer):String;
+var s:string;
+begin
+    case a of
+    1: s:='Порог1';
+    2: s:='Порог2';
+    3: s:='Обрыв';
+    4,5: s:='Норма';
+   // 5: s:='Ремонт';
+
+    end;
+    result:=S;
+end;
+function ReadRI(s:AnsiString):AnsiString;
+var tmp:AnsiString;
+     a:Integer;
+begin
+   if TryStrToInt(s,a) then
+   begin
+    a:=StrToInt(s);
+    tmp:='0';
+    if((a and 1)=1)  Then tmp:=tmp+'1';
+    if((a and 2)=2)  Then tmp:=tmp+'2';
+    if((a and 4)=4)  Then tmp:=tmp+'3';
+    if((a and 8)=8)  Then tmp:=tmp+'4';
+    if((a and 16)=16)  Then tmp:=tmp+'5';
+    ReadRI:=tmp;
+   end
+   else
+    begin
+    //   Form1.Caption:='Ошибка конвертирования!';
+   //    Form1.Memo2.Lines.Add('Ошибка конвертирования! - '+ TimeToStr(Now));
+    //  Form1.Memo2.Lines.Add(AnsiString(d));
+   //   Form1.Memo2.Lines.Add(IntToStr(b));
+
+ //  CloseComPort;
+   //   Sleep(500);
+
+   //    Sleep(500);
+
+
+ //    OpenComPort('com1',19200);
+   end;
+end;
+//------------------------------------------------------------------------------
+function ReadBitX305(a:word):AnsiString;
+var tmp:AnsiString;
+     i:Integer;
+begin
+
+   begin
+
+     for i:=0 to 7 do
+    if(a and (1 shl i))=(1 shl i) then
+    tmp:=tmp+'1'
+    else
+    tmp:=tmp+'0';
+    ReadBitX305:=tmp;
+    //Form1.Memo2.Lines.Add(tmp);
+
+   end;
+end;
+//------------------------------------------------------------------------------
+Function DozorXML:String;
+var i,j:Integer;
+    XMLDoc: IXMLDocument;
+     c,d,e:PAnsichar;
+      a,b,fl:integer;
+      s,cs,l:string;
+      label m1;
+begin
+{
+if flagcommand then
+begin
+  relise_command(global_command,global_path);
+  flagcommand:=false;
+  FormMain.Memo1.lines.Add(IntToStr(global_command));
+  exit;
+end;   }
+
+CoInitialize(nil);
+XMLDoc:=TXMLDocument.Create(nil);
+   XMLDoc.XML.Clear;
+
+   XMLDoc.Active:=True;
+  With XMLDoc do
+  begin
+    with AddChild('Gauges') do
+      begin
+         with AddChild('Date') do
+           begin
+               ChildValues['created']:=DateToStr(Now) + ' '+ TimeToStr(Now);
+           end;
+           for i:=1 to 4 do
+           Begin
+             //---------------DoZOr---------------------------------------------
+               fl:=0;
+               m1:
+               FormatZapr(1,68,4,adr[i],1,0);
+               ResultZapr(a, global_b,c,d,e);
+              // if  TryStrToInt(c,a) then begin  exit; end;
+               sleep(100);
+               if (global_b=1) and (fl=0) then  begin sleep(200);fl:=1; goto m1 end;
+               if (global_b=2) and (fl=0) then  begin sleep(200);fl:=1; goto m1 end;
+             //-----------------------------------------------------------------
+           if adr[i]=1 then
+           begin
+             for j:=1 to 5 do
+               with AddChild('gauge') do
+             begin
+
+
+                 begin
+                 if isnan(StrToFloat(AnsiString(c))) then  ShowMessage('NAN');
+
+                cs:=ReadRI(AnsiString(c));
+               // if cs='' then cs:='0';
+                 if cs='' then begin
+                    XMLDoc.Active := False;
+                    XMLDoc:=nil;
+                    Result:=XMLLOAD;
+                 end;
+                ChildValues['arrival']:=DateToStr(Now) + ' '+ TimeToStr(Now);
+                ChildValues['id']:=IntToStr((j+10)*10);
+                ChildValues['name']:=sdr[i];
+                ChildValues['value']:=cs;
+                if  pos(IntToStr(j),cs)<>0 then  ChildValues['level']:='2'
+                else ChildValues['level']:='4';
+
+                ChildValues['threshold']:=result1(global_b);
+                end;
+             end;
+           end
+           else
+           begin
+           with AddChild('gauge') do
+             begin
+
+
+                 begin
+                cs:=AnsiString(c);
+                ChildValues['arrival']:=DateToStr(Now) + ' '+ TimeToStr(Now);
+                ChildValues['id']:=IntToStr(adr[i]);
+                ChildValues['name']:=sdr[i];
+                if cs='' then cs:='4';
+                ChildValues['value']:=cs;
+
+               // global_b:=b;
+             //   if IsNaN(integer( global_b)) then  ShowMessage('Nan');
+                 if global_b=5 then  global_b:=4;
+
+                ChildValues['level']:=IntToStr(global_b);
+                ChildValues['threshold']:=result1(global_b);
+                end;
+             end;
+             end;
+             end;
+       end
+  end;
+
+   XMLDoc.XML.Insert(0,'<?xml version="1.0" encoding="utf-8" ?>');
+  Result:=(XMLDoc.XML.Text);
+  XMLDoc.Active := False;
+    XMLDoc:=nil;
+end;
+//------------------------------------------------------------------------------
+//==========================X305============================
+Function X305_XML:String;
+const sdr:array[1..6]of string=('U2.1,U2.2 (NEK)','U2.3,U2.4 (NEK)','BTM1','BTM2','BTM3','CCC-903');
+var i,j:Integer;
+    XMLDoc: IXMLDocument;
+
+      a,b,c,d,fl:integer;
+      s,cs,l:string;
+      label m1;
+begin
+ CoInitialize(nil);
+XMLDoc:=TXMLDocument.Create(nil);
+   XMLDoc.XML.Clear;
+
+   XMLDoc.Active:=True;
+  With XMLDoc do
+  begin
+    with AddChild('Gauges') do
+      begin
+         with AddChild('Date') do
+           begin
+               ChildValues['created']:=DateToStr(Now) + ' '+ TimeToStr(Now);
+           end;
+             fl:=0;
+             m1:
+             //---------------X305---------------------------------------------
+               FormatZapr_X305($10,$04,$00);
+               ResultZapr_X305(a,b,c,d);
+               sleep(100);
+               if(d<>0)and (fl=0) then begin sleep(200);fl:=1; goto m1 end;
+             //-----------------------------------------------------------------
+
+              cs:=ReadBitX305(d);
+             if debug then FormMain.CAPTION_TEXT:=TimeToStr(Now)+' '+cs+ ' '+ BoolToStr(debug);
+             //  FormMain.Caption:=cs;
+          //    showmessage(cs+'Hi');
+             for i:=1 to 6 do
+               with AddChild('gauge') do
+             begin
+                ChildValues['arrival']:=DateToStr(Now) + ' '+ TimeToStr(Now);
+                ChildValues['id']:=a*10+i;
+                ChildValues['name']:=sdr[i];
+                ChildValues['value']:=cs;
+                 if  cs[i]='1' then  ChildValues['level']:='2'
+                else ChildValues['level']:='4';
+                if i=6 then
+                begin
+
+
+                   if  cs[i+2]='1' then  ChildValues['level']:='3';
+                   if  cs[i+1]='1' then  ChildValues['level']:='2';
+                    if  cs[i]='1' then  ChildValues['level']:='1';
+                    if (cs[i]='0')and (cs[i+1]='0')and (cs[i+2]='0') then
+                    ChildValues['level']:='4';
+                end;
+                ChildValues['threshold']:=result1(StrTOInt(ChildValues['level']));
+
+             end;
+           end;
+
+  end;
+
+   XMLDoc.XML.Insert(0,'<?xml version="1.0" encoding="utf-8" ?>');
+ //  showmessage(XMLDoc.XML.Text);
+
+  Result:=(XMLDoc.XML.Text);
+
+  XMLDoc.Active := False;
+
+    XMLDoc:=nil;
+end;
+//------------------------------------------------------------------------------
+procedure relise_command(ncom:integer;path:string);
+begin
+//  pause:=true;
+
+
+  Sleep(500);
+     case ncom of
+   0:playcontrol_a($10,$01,$00,''); //Test
+   1:playcontrol_a($10,$01,$01,'Music'); //OpenFolder
+   2: playcontrol_a($10,$01,$02,pansichar(AnsiString(path)));    //Play
+   3:playcontrol_a($10,$01,$02,'002.mp3'); //Play
+    {4:
+   5: }
+   6: playcontrol_a($10,$01,$05,'');
+  { 7:
+   8:
+   9:
+   10:
+   11:}
+   12:playcontrol_a($10,$01,$08,'Music');  //Play Cile
+   13:playcontrol_a($10,$01,$09,'');  //Stop Cile
+  { 14:
+   15:
+   16:}
+    17: playcontrol_b($10,$03,$01,0); // DO0-on
+   18: playcontrol_b($10,$03,$01,1);  //DO1-on
+   19: playcontrol_b($10,$03,$02,0);  // DO0-off
+   20: playcontrol_b($10,$03,$02,1);  // DO1-off
+   21: playcontrol_a($10,$03,$03,'');  //All DO-on
+   22: playcontrol_a($10,$03,$04,'');  //All DO-ff
+  { 23:}
+   24:I700_b('$05M');   //ModulName
+   25:I700_b('@05F');   // DO ALL ON
+   26:I700_b('@050');   // DO ALL OFF
+   27:I700_b('$@05');   //READ_I_O_STATUS
+   28:I700_b('#051001'); //R1ON
+   29: I700_b('#051000');  //R1OFF
+   30:I700_b('#051101');   //R2ON
+   31:I700_b('#051100');   //R2OFF
+   32:I700_b('#051201');   //R3ON
+   33:I700_b('#051200');    //R3OFF
+   34:I700_b('#051301');  //R4ON
+   35:I700_b('#051300'); //R4OFF
+   36:I700_b('$05P');  //R4OFF
+   //--------------------------------
+   37:  playcontrol_a($10,$04,$00,'');  //Read AD_0_6 AND DI0
+
+ end;
+ //ShowMessage(inttostr(ncom));
+ //   Sleep(1000);
+//  pause:=false;
+ //flagcommand:=false;
+end;
+ function serchcommand(sb,st:string):integer;
+ begin
+    Result:=Pos(sb,st);
+ end;
+ procedure scan_command;
+var st,sb:string;
+    command:integer;
+begin
+    if Debug Then   FormMain.CAPTION_TEXT:='Pause 2SEC!!';
+         sleep(25);
+   st:=global_st;
+      for command := 0 to 36 do
+                 begin
+                   sb:=IntToStr(command)+';';
+
+                   if command<10 then sb:='0'+sb;
+
+                if pos(sb,st)<>0 then
+                begin
+                FormMain.Memo1.Lines.Add(inttostr(command));
+                try
+                relise_command(command,global_path);
+                except
+
+                end;
+                end;
+                end;
+ sleep(25);
+   global_pause:=false;
+end;
+end.

@@ -1,0 +1,81 @@
+send ATZ^m 
+wait ok 72    
+send AT^m 
+wait ok 72    
+send AT+GMM^m 
+wait ok 72    
+send AT+CGSN^m 
+wait ok 72    
+send AT+CMEE=2^m 
+wait ok 72    
+send AT+CR=1^m 
+wait ok 72    
+send AT^CVOICE=0^m
+wait ok 72     
+send AT^CVOICE=?^m
+wait ok 72     
+send AT^CVOICE?^m 
+wait ok 72    
+send AT+CLVL=4^m 
+wait ok 72  
+;CALL
+;send ATD0956895445;^m 
+wait ok 72     
+:m1
+send AT+CLCC^m
+waitmulti '1,0,2,0,0|1,0,3,0,0|1,0,0,0,0,|ERROR|' 72
+if 1 nabor_nomera
+if 2 ozidanie_podyoma_trubki
+if 3 trubka_podnata
+if 4 nedozvon
+goto nedozvon
+;===NABOR NOMERA===================
+:nabor_nomera
+display 'Набор номера'
+&NN
+goto m1
+;-------------------------------------------------------------
+;===OZIDANIE PODYOMA TRUBKI===========
+:ozidanie_podyoma_trubki
+display 'Ожидание подъема трубки'
+delay 1000
+&OP
+goto m1
+;-------------------------------------------------------------
+;===NEDOZVON======================
+:nedozvon
+display 'Недозвон'
+&NZ
+send AT+CHUP^m
+wait ok 72
+goto CALL_FINISH
+;-------------------------------------------------------------
+;===TRUBKA PODNATA===================
+:trubka_podnata
+display 'Трубка поднята'
+&TP
+send AT^^DDSETEX=2^m
+wait ok 72
+display '#1'
+display 'Оповещение'
+&PS
+:m2
+send AT+CPAS^m
+waitmulti '0|ERROR' 72
+if 1 CALL_END
+if 2 CALL_END
+&OPP
+delay 1000
+goto m2
+;if SUCCESS m2
+;if TIMEOUT m2
+;if FAIL  m2 
+;===CALL_END========================
+:CALL_END
+
+;----------------------------------------------------------------
+send AT+CHUP^m
+wait ok 72
+display 'Оповещение окончено'
+&EO
+:CALL_FINISH
